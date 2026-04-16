@@ -23,23 +23,32 @@ Built a 4-node Hadoop/Spark distributed pipeline for unsupervised sentiment clus
 
 ## Tech Stack
 
-- Apache Spark (PySpark)
-- Apache Hadoop (4-node cluster)
+- Apache Spark 3.x (PySpark)
+- Apache Hadoop 3.x (4-node cluster)
 - Delta Lake
-- SparkNLP
+- SparkNLP (requires Java 8 or 11)
 - NLTK
 - Word2Vec + K-Means
+
+## Cluster Environment
+
+This pipeline was developed and tested on a **4-node Hadoop/Spark cluster** with the following configuration:
+
+- Spark 3.x with Delta Lake extension
+- Hadoop 3.x in pseudo-distributed / fully-distributed mode
+- SparkNLP requires **Java 8 or Java 11** — ensure `JAVA_HOME` is set
+- Master URL passed via `createSparkSession(master_url)` — update to your cluster or use `local[*]` for single-machine testing
 
 ## Dataset
 
 COVID-19 tweets dataset (2GB) — available on [Kaggle: Corona Virus Tweets](https://www.kaggle.com/datasets/smid80/coronavirus-covid19-tweets).
 
-> Dataset not included in this repo due to size. Download and place CSV files in a `dataset/` folder.
+> Dataset not included due to size. Download and place CSV files in a `dataset/` folder.
 
 ## Files
 
 - `sentimentAnalysis.py` — main PySpark pipeline (Word2Vec + K-Means clustering)
-- `MapReduce.py` — MapReduce implementation for word frequency
+- `MapReduce.py` — MapReduce implementation for tweet parsing and word frequency
 - `MapReduceCsv.py` — CSV-optimized MapReduce processing
 - `convert.py` — data format conversion utilities
 - `removeNewLine.py` — preprocessing utility
@@ -48,10 +57,14 @@ COVID-19 tweets dataset (2GB) — available on [Kaggle: Corona Virus Tweets](htt
 ## How to Run
 
 ```bash
-pip install pyspark delta-spark sparknlp nltk
+pip install -r requirements.txt
 
-# Start Spark session and run pipeline
-spark-submit sentimentAnalysis.py
+# Submit to Spark cluster
+spark-submit --packages io.delta:delta-core_2.12:2.1.0 sentimentAnalysis.py
+
+# Or run locally (single machine)
+# Update master_url to 'local[*]' in sentimentAnalysis.py first
+python sentimentAnalysis.py
 ```
 
-> Requires a configured Hadoop/Spark cluster or local Spark session.
+> SparkNLP requires Java 8 or 11. Set `JAVA_HOME` before running.
